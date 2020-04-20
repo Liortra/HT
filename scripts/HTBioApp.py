@@ -13,7 +13,8 @@ fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640, 480))
 
 # cameraID2 = 0  # id of FLIR Lepton
-cameraID1 = 0  # id of SMI Depstech
+cameraID1 = 1  # id of SMI Depstech
+
 
 
 class SMICamera(Image):
@@ -33,19 +34,11 @@ class SMICamera(Image):
         if ret:
             if self.started:
                 out.write(self.frame)
-            # Since we want to show something larger on the screen than the
-            # original 320x240, we resize the image again
-            # Note that it would also be possible to keep the large version
-            # of the baseimage and make the result image a copy of this large
-            # base image and use the scaling factor to draw the rectangle
-            # at the right coordinates.
-            resize_frame_result = cv2.resize(self.frame, (self.frame.shape[1], self.frame.shape[0]))
             # convert it to texture
             image_texture = self.get_texture_from_frame(self.frame, 0)
             # display image from the texture
             self.texture = image_texture
             self.parent.ids['imageCamera'].texture = self.texture
-            # print('updated')
 
     def stop(self):
         Clock.unschedule(self.update)
