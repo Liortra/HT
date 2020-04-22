@@ -5,16 +5,28 @@ from kivy.graphics.texture import Texture
 from kivy.lang import Builder
 from kivy.uix.image import Image
 from kivy.uix.screenmanager import ScreenManager, Screen
-import runpy
+# import runpy
+from datetime import datetime
+# problem with this line
+# from scripts.LeptonAPI import initCam, startLepton, stopLepton
 
+
+# init and const
 Builder.load_file("htbio.kv")
+# this section creates the date object
+dateTimeObj = datetime.now()
+now = dateTimeObj.strftime("%d%m%Y%H%M%S")  # ddMMyyyyHHmmss
 # Setting for saving the SMI video
+videoName = "HTBio_files/" + now + '.avi'
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640, 480))
+out = cv2.VideoWriter(videoName, fourcc, 20.0, (640, 480))
+# Setting for saving HTBio file from Lepton cam
+filename = 'HTBio_files/' + now + '.HTBio'
+file = open(filename, 'wb')
+# LeptonCam(now)
 
 # cameraID2 = 0  # id of FLIR Lepton
 cameraID1 = 1  # id of SMI Depstech
-
 
 
 class SMICamera(Image):
@@ -75,6 +87,7 @@ class CameraScreen(Screen):
             buttonStart.disabled = False
             # Prevent the back (button)
             buttonBack.disabled = True
+            # initCam(filename,now)
         else:  # press on TurnOff
             self.turnOn = False  # stop what was "started"
             buttonTurnOn.text = 'Turn ON'
@@ -97,11 +110,15 @@ class CameraScreen(Screen):
     def startVideo(self):
         if self.turnOn:  # Was running at click
             self.SMICamera.start_stop_RecordVideo()
-            runpy.run_path(path_name='Lepton_API.py')
+            # startLepton()
+            # LeptonCam.startLepton()
+            # runpy.run_path(path_name='LeptonAPI.py')
 
     # stop the video
     def stopVideo(self):
         self.SMICamera.start_stop_RecordVideo()
+        # stopLepton()
+        # LeptonCam.stopLepton()
 
 
 class MainScreen(Screen):
