@@ -17,6 +17,6 @@ TO-DO:
 **
 i send you only the script package, i have also backup packup of my history codes.
 
-i'm working with Kivy GUI. thanks to Marlen =) 
+i'm working with Kivy GUI. thanks to Marlen =)
 # https://stackoverflow.com/questions/38002630/how-to-get-syntax-highlighting-on-kivy-kv-file-in-pycharm-on-osx - before work with kv file
 # https://kivy.org/doc/stable/installation/installation-windows.html#install-win-dist - before work with Kivy

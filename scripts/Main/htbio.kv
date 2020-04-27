@@ -33,16 +33,16 @@
 
 <CameraScreen>:
     GridLayout:
-        rows: 5
-        spacing: 10
-        padding: 10
+        rows: 6
+        spacing: 20
+        padding: 20
         Image:
             id: imageCamera
             source: 'logo.jpg'
         Button:
             id: buttonTurnOn
             text: 'Turn ON'
-            on_press: root.startCamera(imageCamera, buttonTurnOn, buttonStart, buttonStop, buttonBack)
+            on_press: root.startCamera(imageCamera, buttonTurnOn, buttonStart, buttonStop, buttonBack, buttonHeat)
             height: 50
             size_hint_y: None
             disabled: False
@@ -50,6 +50,13 @@
             id: buttonStart
             text: 'Start'
             on_press: root.startVideo()
+            height: 50
+            size_hint_y: None
+            disabled: True
+        Button:
+            id: buttonHeat
+            text: 'Heat'
+            on_press: root.ledHeat(buttonHeat)
             height: 50
             size_hint_y: None
             disabled: True

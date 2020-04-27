@@ -1,7 +1,6 @@
 import clr  # needs the "pythonnet" package
 import sys
 import os
-import time
 
 import platform
 

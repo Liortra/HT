@@ -24,8 +24,8 @@ out = cv2.VideoWriter(videoName, fourcc, 20.0, (640, 480))
 # Setting for saving HTBio file from Lepton cam
 filename = os.path.abspath(os.path.join(basepath, "..", "HTBio_files/", nameFile))
 file = open(filename, 'wb+')
-# cameraID2 = 0  # id of FLIR Lepton
-cameraID1 = 1  # id of SMI Depstech
+# cameraID2 = 0  # id of FLIR Lepton - check port 0 / 2
+cameraID1 = 1  # id of SMI Depstech - check port
 
 
 class SMICamera(Image):
@@ -59,7 +59,6 @@ class SMICamera(Image):
         buffer_frame = cv2.flip(frame, flipped)
         buffer_frame_str = buffer_frame.tostring()
         image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
-        # print('(' + str(frame.shape[1]) + ';' + str(frame.shape[0]) + ')')
         image_texture.blit_buffer(buffer_frame_str, colorfmt='bgr', bufferfmt='ubyte')
         return image_texture
 
@@ -69,17 +68,19 @@ class SMICamera(Image):
 
 class CameraScreen(Screen):
     turnOn = False
+    heat = False
     # initialize the "Camera"
     SMICamera = Image(source='logo.jpg')
 
-    def startCamera(self, imageCamera, buttonTurnOn, buttonStart, buttonStop, buttonBack):
+    def startCamera(self, imageCamera, buttonTurnOn, buttonStart, buttonStop, buttonBack, buttonHeat):
         from scripts.API import LeptonAPI
+        from scripts.Arduino import on_off_led
         if not self.turnOn:
             self.capture = cv2.VideoCapture(cameraID1)  # capture SMI cam
             self.SMICamera = SMICamera(self, self.capture)  # change the window from logo to camera
             imageCamera = self.SMICamera
             self.SMICamera.start()
-            # Set as started, so next action will be 'Pause'
+            # Set as started
             self.turnOn = True
             buttonTurnOn.text = 'Turn Off'
             # when started, let start enabled
@@ -88,8 +89,11 @@ class CameraScreen(Screen):
             buttonStart.disabled = False
             # Prevent the back (button)
             buttonBack.disabled = True
-            # initCam(filename, now)
-            LeptonAPI.initCam()
+            # initCam(filename, now) - delete this row
+            LeptonAPI.initCam()  # init Lepton cam - need to check if needed
+            buttonHeat.disabled = False # enabled
+            self.heat = True
+            on_off_led.initLed()  # start the Arduino
         else:  # press on TurnOff
             self.turnOn = False  # stop what was "started"
             buttonTurnOn.text = 'Turn ON'
@@ -105,21 +109,41 @@ class CameraScreen(Screen):
             buttonStart.disabled = True
             # Enabled the back (button)
             buttonBack.disabled = False
+            # Prevent the Heat (button)
+            buttonHeat.text = 'Heat'
+            buttonHeat.disabled = True
+            self.heat = False
             # Release the capture
             self.capture.release()
 
     # start to make a video and run Lepton Camera
-    def startVideo(self):
+    def startVideo(self):  # TODO need to check how disable stop button
         if self.turnOn:  # Was running at click
-            self.SMICamera.start_stop_RecordVideo() # start film a video
+            self.SMICamera.start_stop_RecordVideo()  # start film a video
             from scripts.API import LeptonAPI
-            LeptonAPI.startLepton() # start film a temp
+            LeptonAPI.startLepton()  # start film a temp
+            # from scripts.Arduino import on_off_led
+            # on_off_led.startLed()  # start the Arduino
 
     # stop the video
-    def stopVideo(self):
+    def stopVideo(self):  # TODO need to check how disable start button
         self.SMICamera.start_stop_RecordVideo()
         from scripts.API import LeptonAPI
-        LeptonAPI.stopLepton(file, now)
+        LeptonAPI.stopLepton(file, now)  # stop lepton film
+        # from scripts.Arduino import on_off_led
+        # on_off_led.stopLed()  # stop the Arduino
+
+    def ledHeat(self, buttonHeat):
+        if self.heat:
+            from scripts.Arduino import on_off_led
+            on_off_led.startLed()  # start the Arduino
+            buttonHeat.text = 'Cool'
+            self.heat = False
+        elif not self.heat:
+            from scripts.Arduino import on_off_led
+            on_off_led.stopLed()  # stop the Arduino
+            buttonHeat.text = 'Heat'
+            self.heat = True
 
 
 class MainScreen(Screen):
