@@ -1,17 +1,16 @@
-from import_clr import *
+from scripts.API.import_clr import *
 
 clr.AddReference("ManagedIR16Filters")
 
 from IR16Filters import IR16Capture, NewBytesFrameEvent
 import numpy
-import time
-from datetime import datetime
 import struct
 
 # init and const
 numpyArr = None
 tempList = []
-
+sec = 30  # time delay
+# header
 version_id = 2  # 1 byte
 patient_id = 11  # 4 byte
 test_id = 111  # 4 byte
@@ -31,59 +30,44 @@ def getFrameRaw(arr, width, height):
     tempList.append(numpyArr)
 
 
-def initCam(file, now):
+def initCam():
     global capture
-    global dateX
-    global fout
-    dateX = now.encode(encoding='ascii', errors='strict')
-    fout = file
     # Build an IR16 capture device
     capture = IR16Capture()
     capture.SetupGraphWithBytesCallback(NewBytesFrameEvent(getFrameRaw))
+    print("init")
 
 
 # https://docs.python.org/3.4/library/struct.html#format-strings
-def buildHeader():
+def buildHeader(fout,dateX):
     fout.write(struct.pack('B', version_id))
     fout.write(struct.pack('i', patient_id))
     fout.write(struct.pack('i', test_id))
     fout.write(struct.pack('14B', *dateX))
     fout.write(struct.pack('i', frame_width))
     fout.write(struct.pack('i', frame_height))
-    # fout.write(struct.pack('i', number_of_frames))
     fout.write(struct.pack('i', len(tempList)))
     fout.write(struct.pack('i', decay_point))
     fout.write(struct.pack('i', heating_point))
 
 
 def startLepton():
-    # Build an IR16 capture device
-    # capture = IR16Capture()
-    # capture.SetupGraphWithBytesCallback(NewBytesFrameEvent(getFrameRaw))
     capture.RunGraph()
+    print("start")
 
 
-# def stopLepton():
-def stopLepton(start_time):
+def stopLepton(file, now):
+    dateX = now.encode(encoding='ascii', errors='strict')
+    print("stop")
     capture.StopGraph()
     capture.Dispose()
-    buildHeader()
+    buildHeader(file,dateX)
     print(len(tempList))
     for index, item in enumerate(tempList):
-        fout.write(struct.pack('i', index))  # index of frame in 4 byte
+        file.write(struct.pack('i', index))  # index of frame in 4 byte
         item = item - 27315
         for x in range(0, item.shape[0]):
             for y in range(0, item.shape[1]):
-                fout.write(struct.pack('h', item[x, y]))
-    print("--- %s seconds ---" % (time.time() - start_time))
+                file.write(struct.pack('h', item[x, y]))
+    file.close()
 
-
-# dateTimeObj = datetime.now()
-# now = dateTimeObj.strftime("%d%m%Y%H%M%S")  # ddMMyyyyHHmmss
-# filename = 'HTBio_files/' + now + '.HTBio'
-# file = open(filename, 'wb')
-# start_time = time.time()
-# initCam(file, now)
-# startLepton()
-# time.sleep(5)
-# stopLepton(start_time)

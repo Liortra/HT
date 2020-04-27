@@ -5,26 +5,25 @@ from kivy.graphics.texture import Texture
 from kivy.lang import Builder
 from kivy.uix.image import Image
 from kivy.uix.screenmanager import ScreenManager, Screen
-# import runpy
 from datetime import datetime
-# problem with this line
-# from scripts.LeptonAPI import initCam, startLepton, stopLepton
-
+import os.path
 
 # init and const
 Builder.load_file("htbio.kv")
 # this section creates the date object
 dateTimeObj = datetime.now()
 now = dateTimeObj.strftime("%d%m%Y%H%M%S")  # ddMMyyyyHHmmss
+# path to scripts/HTBio_files
+basepath = os.path.dirname(__file__)
+nameFile = now + '.HTBio'
+nameVideo = now + '.avi'
 # Setting for saving the SMI video
-videoName = "HTBio_files/" + now + '.avi'
+videoName = os.path.abspath(os.path.join(basepath, "..", "HTBio_files/", nameVideo))
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter(videoName, fourcc, 20.0, (640, 480))
 # Setting for saving HTBio file from Lepton cam
-filename = 'HTBio_files/' + now + '.HTBio'
-file = open(filename, 'wb')
-# LeptonCam(now)
-
+filename = os.path.abspath(os.path.join(basepath, "..", "HTBio_files/", nameFile))
+file = open(filename, 'wb+')
 # cameraID2 = 0  # id of FLIR Lepton
 cameraID1 = 1  # id of SMI Depstech
 
@@ -41,10 +40,11 @@ class SMICamera(Image):
     def start(self, fps=30):
         Clock.schedule_interval(self.update, 1.0 / fps)
 
+    # run a video on screen
     def update(self, dt):
         ret, self.frame = self.capture.read()
         if ret:
-            if self.started:
+            if self.started:  # push on start button
                 out.write(self.frame)
             # convert it to texture
             image_texture = self.get_texture_from_frame(self.frame, 0)
@@ -73,9 +73,10 @@ class CameraScreen(Screen):
     SMICamera = Image(source='logo.jpg')
 
     def startCamera(self, imageCamera, buttonTurnOn, buttonStart, buttonStop, buttonBack):
+        from scripts.API import LeptonAPI
         if not self.turnOn:
-            self.capture = cv2.VideoCapture(cameraID1)
-            self.SMICamera = SMICamera(self, self.capture)
+            self.capture = cv2.VideoCapture(cameraID1)  # capture SMI cam
+            self.SMICamera = SMICamera(self, self.capture)  # change the window from logo to camera
             imageCamera = self.SMICamera
             self.SMICamera.start()
             # Set as started, so next action will be 'Pause'
@@ -87,7 +88,8 @@ class CameraScreen(Screen):
             buttonStart.disabled = False
             # Prevent the back (button)
             buttonBack.disabled = True
-            # initCam(filename,now)
+            # initCam(filename, now)
+            LeptonAPI.initCam()
         else:  # press on TurnOff
             self.turnOn = False  # stop what was "started"
             buttonTurnOn.text = 'Turn ON'
@@ -109,16 +111,15 @@ class CameraScreen(Screen):
     # start to make a video and run Lepton Camera
     def startVideo(self):
         if self.turnOn:  # Was running at click
-            self.SMICamera.start_stop_RecordVideo()
-            # startLepton()
-            # LeptonCam.startLepton()
-            # runpy.run_path(path_name='LeptonAPI.py')
+            self.SMICamera.start_stop_RecordVideo() # start film a video
+            from scripts.API import LeptonAPI
+            LeptonAPI.startLepton() # start film a temp
 
     # stop the video
     def stopVideo(self):
         self.SMICamera.start_stop_RecordVideo()
-        # stopLepton()
-        # LeptonCam.stopLepton()
+        from scripts.API import LeptonAPI
+        LeptonAPI.stopLepton(file, now)
 
 
 class MainScreen(Screen):
@@ -134,6 +135,6 @@ class MainApp(App):
         return screenManager
 
 
-# Start the Camera App
+# Start the MainApp
 if __name__ == '__main__':
     MainApp().run()
