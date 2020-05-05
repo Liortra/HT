@@ -29,41 +29,34 @@
             size_hint_y: None
             width: 150
             height: 50
-            on_release: root.exit()
+            on_release: root.exit_app()
 
 <CameraScreen>:
     GridLayout:
-        rows: 6
+        rows: 5
         spacing: 20
         padding: 20
         Image:
-            id: imageCamera
-            source: 'logo.jpg'
+            id: imageCamera  # TODO check this id if i can get to him - d
+            source: 'logo.jpg' # show the logo in the beginning
         Button:
             id: buttonTurnOn
             text: 'Turn ON'
-            on_press: root.startCamera(imageCamera, buttonTurnOn, buttonStart, buttonStop, buttonBack, buttonHeat)
+            on_press: root.init_camera(imageCamera, buttonTurnOn, buttonStart, buttonBack, buttonHeat)
             height: 50
             size_hint_y: None
             disabled: False
         Button:
             id: buttonStart
             text: 'Start'
-            on_press: root.startVideo()
+            on_press: root.start_streaming(buttonTurnOn, buttonStart)
             height: 50
             size_hint_y: None
             disabled: True
         Button:
             id: buttonHeat
             text: 'Heat'
-            on_press: root.ledHeat(buttonHeat)
-            height: 50
-            size_hint_y: None
-            disabled: True
-        Button:
-            id: buttonStop
-            text: 'Stop'
-            on_press: root.stopVideo()
+            on_press: root.on_off_heat(buttonHeat)
             height: 50
             size_hint_y: None
             disabled: True
@@ -75,5 +68,6 @@
             height: 50
             disabled: False
             on_release:
+                root.close_camera()
                 app.root.transition.direction = 'right'
                 app.root.current = 'main'
