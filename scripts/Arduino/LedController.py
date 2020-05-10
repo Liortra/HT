@@ -22,6 +22,7 @@ def init_led():
     global arduino
     # your Serial port should be different!
     arduino = Serial('COM3', 9600)
+    # arduino = Serial('COM4', 9600)
     time.sleep(3)  # waiting the initialization...
 
 

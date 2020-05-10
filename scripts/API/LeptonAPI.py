@@ -1,7 +1,8 @@
-from scripts.API.ImportClr import *
+from API.ImportClr import *
 
 clr.AddReference("ManagedIR16Filters")
 
+from Lepton import CCI
 from IR16Filters import IR16Capture, NewBytesFrameEvent
 import numpy
 import struct
@@ -10,14 +11,17 @@ import struct
 numpyArr = None
 listTemp = []
 countTempPass = 0  # counter for higher temps
-heatTemp = 4100 + 27315  # the heat temperature
-highTemp = False
+# heatTemp = 4100 + 27315  # the heat temperature
+# highTemp = False
 # header
 versionId = 2  # 1 byte
 patientId = 11  # 4 byte
 testId = 111  # 4 byte
 frameWidth = 160  # 4 byte
 frameHeight = 120  # 4 byte
+
+lep, = (dev.Open()
+        for dev in CCI.GetDevices())
 
 
 # frame callback function
@@ -52,16 +56,20 @@ def build_header(HTBioFile, dateX):
     HTBioFile.write(struct.pack('i', heatingPoint))
 
 
-def check_temp(numpyArr):
-    global countTempPass
-    heat = len(numpy.where(numpyArr > heatTemp))
-    countTempPass += heat
+# def check_temp(numpyArr):
+#     global countTempPass
+#     heat = len(numpy.where(numpyArr > heatTemp))
+#     countTempPass += heat
 
 
 def start_lepton():
-    # need restart after stop button
-    capture.RunGraph()
+    capture.RunGraph()  # Lepton cam start record
     print("start")
+
+
+def lepton_normalization():
+    lep.sys.RunFFCNormalization()
+    print("FFC")
 
 
 def mark_decay_point():

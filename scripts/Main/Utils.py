@@ -8,11 +8,18 @@ import cv2  # https://docs.opencv.org/master/d6/d00/tutorial_py_root.html
 from datetime import datetime
 import os.path
 
+# const
+heatingTime = 20
+testTime = 60
+steadyStateTime = 3
+decayPointFFC = heatingTime + steadyStateTime
+stopTestFFC = testTime - steadyStateTime
 
 def find_camera():  # TODO fix find_camera
     # for i in reversed(range(10)):
+    # for i in range(1, 10):
     #     print("Testing for presence of camera #{0}...".format(i))
-    for i in range(1, 10):  # TODO from 0 and check
+    for i in reversed(range(10)): # TODO from 0 and check
         cv2_cap = cv2.VideoCapture(i)
         # print("Testing for presence of camera #{0}...".format(i))
         if cv2_cap.isOpened():

@@ -4,9 +4,8 @@ Workflow of the system:
 1) First window is for input from the user.
 2) click next to get in the system.
 3) click turn on to activate the system.
-4) click start to start the record, don't click stop. 
-5) you need click the heat and cool button 
-6) click stop to stop the record.
+4) click start to start the record.
+5) the test running automatic - need to fix this
 7) click turn off to teardown the system.
 8) click back to user input window.
 9) click exit to close the GUI.
@@ -20,3 +19,7 @@ I'm working with: (in future, write the steps to activate the system)
 * unblock folder + files
 
 ** check PYTHONPATH or sys.path.append("..")
+
+** what left:
+1. fix the start test - the time(i put number for the test)
+2. fix the show cam with the start cam without interrupt.
