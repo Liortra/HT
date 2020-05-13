@@ -31,16 +31,17 @@ def getFrameRaw(arr, width, height):
     global numpyArr
     numpyArr = numpy.fromiter(arr, dtype="uint16").reshape(height, width)
     listTemp.append(numpyArr)
-    # print(numpyArr)
+    print(numpyArr)
 
 
 def init_cam():
     global capture
     # Build an IR16 capture device
-    # method from the DLL
+    # methods from the DLL
     capture = IR16Capture()
     capture.SetupGraphWithBytesCallback(NewBytesFrameEvent(getFrameRaw))
-    print("init")
+    lep.rad.SetTLinearEnableStateChecked(False)  # represents temperature in Kelvin(True) or Celsius(False)
+    # print("init")
 
 
 # https://docs.python.org/3.4/library/struct.html#format-strings
@@ -89,7 +90,7 @@ def stop_lepton(HTBioFile, startTestTimeStamp):
     build_header(HTBioFile, dateX)
     for index, item in enumerate(listTemp):
         HTBioFile.write(struct.pack('i', index))  # index of frame in 4 byte
-        item = item - 27315
+        # item = item - 27315
         for x in range(0, item.shape[0]):
             for y in range(0, item.shape[1]):
                 HTBioFile.write(struct.pack('h', item[x, y]))
