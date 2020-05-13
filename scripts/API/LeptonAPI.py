@@ -94,6 +94,7 @@ def stop_lepton(HTBioFile, startTestTimeStamp):
             for y in range(0, item.shape[1]):
                 HTBioFile.write(struct.pack('h', item[x, y]))
     HTBioFile.close()
+    listTemp.clear()
 
 
 def close_lepton():
