@@ -11,9 +11,11 @@ from kivy.lang import Builder
 from kivy.uix.image import Image
 from kivy.uix.screenmanager import ScreenManager, Screen
 import cv2
+import threading
 import sys
 
 Config.set('graphics', 'fullscreen', 'fake')  # disable the X button
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')  # disable right click red dot
 sys.path.append('..')
 from Main import Utils
 
@@ -31,7 +33,11 @@ class ICTCamera(Image):
         self.opticVideoWriter = None  # init for video writer
         self.decayFrame = []
 
-    # starts the "Camera", capturing at 30 fps by default
+        thread = threading.Thread(target=self.start, args=())
+        thread.daemon = True  # Daemonize thread
+        thread.start()
+
+        # starts the "Camera", capturing at 30 fps by default
     def start(self, fps=30):  # TODO check fps
         Clock.schedule_interval(self.update, 1.0 / fps)  # Schedule an event to be called every <timeout> seconds.
 
