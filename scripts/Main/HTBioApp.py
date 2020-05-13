@@ -19,7 +19,7 @@ from Main import Utils
 
 # init and const
 Builder.load_file('htbio.kv')
-cameraID1 = Utils.find_camera()  # WARN 0 is from here - think what to do
+cameraID1 = Utils.find_camera()  # find the port of the camera
 
 
 class ICTCamera(Image):
@@ -29,8 +29,7 @@ class ICTCamera(Image):
         self.parent = parent  # this object's parent (= box layout) - change the logo to the camera
         self.isRecording = False  # start recording video from SMI
         self.opticVideoWriter = None  # init for video writer
-        self.listFrames = []
-        self.deacyFrame = []
+        self.decayFrame = []
 
     # starts the "Camera", capturing at 30 fps by default
     def start(self, fps=30):  # TODO check fps
@@ -40,11 +39,9 @@ class ICTCamera(Image):
     def update(self, dt):  # TypeError: schedule_interval() takes exactly 2 positional arguments, dt - delta time
         ret, self.frame = self.capture.read()
         if ret:
+            self.frame.shape
             if self.isRecording:  # push on start button
-                # self.opticVideoWriter.write(self.frame)
-                testFrame = cv2.flip(self.frame, 0)
-                self.listFrames.append(testFrame)
-                # TODO if writing with this cam don't work save it in list and then save
+                self.opticVideoWriter.write(self.frame)  # make mp4 video
             # convert it to texture & display image from the texture
             self.parent.ids['imageCamera'].texture = self.get_texture_from_frame(self.frame, 0)
 
@@ -59,19 +56,18 @@ class ICTCamera(Image):
         return imageTexture
 
     def start_stop_record_video(self):
-        self.isRecording = not self.isRecording
+        if not self.isRecording:
+            self.isRecording = not self.isRecording
+        else:
+            self.isRecording = not self.isRecording
+            self.opticVideoWriter.release()
 
     def init_record_writer(self, opticVideoWriter):
         self.opticVideoWriter = opticVideoWriter
         print("init video")
 
-    def save_video(self):
-        for i in range(len(self.listFrames)):
-            self.opticVideoWriter.write(self.listFrames[i])
-        self.opticVideoWriter.release()
-
     def save_decay_point_frame(self):
-        self.deacyFrame.append(self.frame)
+        self.decayFrame.append(self.frame)
 
 
 class CameraScreen(Screen):
@@ -125,13 +121,12 @@ class CameraScreen(Screen):
             buttonStart.text = 'Stop'
             buttonHeat.text = 'Cool'
             self.isHeated = True
-            self.fileWriter, videoWriter, self.startTestTimeStamp = Utils.build_files()
+            self.fileWriter, videoWriter, self.startTestTimeStamp = Utils.build_files(self.capture)
             self.ICTCamera.init_record_writer(videoWriter)
             self.ICTCamera.start_stop_record_video()  # start film a video
             CameraScreen.run_test(self, self.fileWriter, self.startTestTimeStamp, buttonTurnOn, buttonStart, buttonHeat)
         else:
             self.ICTCamera.start_stop_record_video()
-            self.ICTCamera.save_video()
             self.isRecording = False
             buttonTurnOn.disabled = False  # Enable the TurnOff (button)
             buttonStart.text = 'Start'

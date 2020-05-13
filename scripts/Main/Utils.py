@@ -15,15 +15,13 @@ testTime = 60
 steadyStateTime = 3
 decayPointFFC = heatingTime + steadyStateTime
 stopTestFFC = testTime - steadyStateTime
+fps = 30.0
 
 
-def find_camera():  # TODO fix find_camera
-    # for i in reversed(range(10)):
-    # for i in range(1, 10):
-    #     print("Testing for presence of camera #{0}...".format(i))
-    for i in reversed(range(10)):  # TODO from 0 and check
+def find_camera():
+    # for i in range(1,10):  # 0 is laptop cam(personal laptop)
+    for i in reversed(range(10)):
         cv2_cap = cv2.VideoCapture(i)
-        # print("Testing for presence of camera #{0}...".format(i))
         if cv2_cap.isOpened():
             cv2_cap.release()
             cv2.destroyAllWindows()
@@ -34,7 +32,7 @@ def find_camera():  # TODO fix find_camera
         exit(1)
 
 
-def build_files():
+def build_files(capture):
     # this section creates the date object
     dateTimeObj = datetime.now()
     startTestTimeStamp = dateTimeObj.strftime("%d%m%Y%H%M%S")  # time format = DDMMYYYYHHMMSS
@@ -42,17 +40,18 @@ def build_files():
     basePath = os.path.dirname(__file__)
     nameFile = startTestTimeStamp + '.HTBio'
     nameVideo = startTestTimeStamp + '.mp4'
-    # nameVideo = startTestTimeStamp + '.avi'
-    # Setting for saving the SMI videoWriter
+    # Setting for saving the ICT videoWriter
     videoName = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameVideo))
     videoWriterFourcc = cv2.VideoWriter_fourcc(*'mp4v')  # http://www.fourcc.org/codecs.php - list of available codes
-    # videoWriterFourcc = cv2.VideoWriter_fourcc(*'XVID')
-    # videoWriter = cv2.VideoWriter(videoName, videoWriterFourcc, 30.0, (1920, 1080))
-    videoWriter = cv2.VideoWriter(videoName, videoWriterFourcc, 60, (640, 480))
-    # (const String &filename, int fourcc, double fps, Size frameSize, bool isColor=true)
-    # fps - const for utils and update
-    # TODO check resolution  - f
+    # TODO change resolution  - f
+    # capture.set(3,2592)
+    # capture.set(4,1944)
+    videoWriter = cv2.VideoWriter(videoName, videoWriterFourcc, fps, (int(capture.get(3)), int(capture.get(4))))
+    # print(int(capture.get(3)))
+    # print(int(capture.get(4)))
+    # (const String &filename, int fourcc, double fps, Size frameSize(width,height))
+    # int(capture.get(3) = 1280 & int(capture.get(4) = 720
     # Setting for saving HTBio HTBioFile from Lepton cam
     filename = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameFile))
-    HTBioFile = open(filename, 'wb+')  # TODO send the name HTBioName for creator
+    HTBioFile = open(filename, 'wb+')
     return HTBioFile, videoWriter, startTestTimeStamp
