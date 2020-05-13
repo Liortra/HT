@@ -40,6 +40,8 @@ def build_files(capture):
     basePath = os.path.dirname(__file__)
     nameFile = startTestTimeStamp + '.HTBio'
     nameVideo = startTestTimeStamp + '.mp4'
+    namePhoto = startTestTimeStamp + '.jpg'
+    photoName = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", namePhoto))
     # Setting for saving the ICT videoWriter
     videoName = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameVideo))
     videoWriterFourcc = cv2.VideoWriter_fourcc(*'mp4v')  # http://www.fourcc.org/codecs.php - list of available codes
@@ -54,4 +56,4 @@ def build_files(capture):
     # Setting for saving HTBio HTBioFile from Lepton cam
     filename = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameFile))
     HTBioFile = open(filename, 'wb+')
-    return HTBioFile, videoWriter, startTestTimeStamp
+    return HTBioFile, videoWriter, photoName, startTestTimeStamp

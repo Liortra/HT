@@ -72,8 +72,9 @@ class ICTCamera(Image):
         self.opticVideoWriter = opticVideoWriter
         print("init video")
 
-    def save_decay_point_frame(self):
-        self.decayFrame.append(self.frame)
+    def save_decay_point_frame(self,photoWriter):
+        cv2.imwrite(photoWriter,self.frame)
+        # self.decayFrame.append(self.frame)
 
 
 class CameraScreen(Screen):
@@ -127,10 +128,10 @@ class CameraScreen(Screen):
             buttonStart.text = 'Stop'
             buttonHeat.text = 'Cool'
             self.isHeated = True
-            self.fileWriter, videoWriter, self.startTestTimeStamp = Utils.build_files(self.capture)
+            self.fileWriter, videoWriter, self.photoWriter ,self.startTestTimeStamp = Utils.build_files(self.capture)
             self.ICTCamera.init_record_writer(videoWriter)
             self.ICTCamera.start_stop_record_video()  # start film a video
-            CameraScreen.run_test(self, self.fileWriter, self.startTestTimeStamp, buttonTurnOn, buttonStart, buttonHeat)
+            CameraScreen.run_test(self, self.fileWriter, self.photoWriter,self.startTestTimeStamp, buttonTurnOn, buttonStart, buttonHeat)
         else:
             self.ICTCamera.start_stop_record_video()
             self.isRecording = False
@@ -143,7 +144,7 @@ class CameraScreen(Screen):
             # LeptonAPI.stop_lepton(self.fileWriter, self.startTestTimeStamp)  # stop lepton film
             # LedController.stop_led()  # stop the Arduino
 
-    def run_test(self, fileWriter, startTestTimeStamp, buttonTurnOn, buttonStart, buttonHeat):
+    def run_test(self, fileWriter, photoWriter, startTestTimeStamp, buttonTurnOn, buttonStart, buttonHeat):
         from API import LeptonAPI
         from Arduino import LedController
         # lambda dt: if you want to schedule a function that does not accept the dt argument
@@ -154,7 +155,7 @@ class CameraScreen(Screen):
         Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
         Clock.schedule_once(lambda dt: LedController.stop_led(), Utils.decayPointFFC)
         Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
-        Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(), Utils.decayPointFFC)
+        Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter), Utils.decayPointFFC)
         Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
         Clock.schedule_once(lambda dt: LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp), Utils.stopTestFFC)
         Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonTurnOn, buttonStart, buttonHeat),

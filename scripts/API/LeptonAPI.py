@@ -31,7 +31,7 @@ def getFrameRaw(arr, width, height):
     global numpyArr
     numpyArr = numpy.fromiter(arr, dtype="uint16").reshape(height, width)
     listTemp.append(numpyArr)
-    print(numpyArr)
+    # print(numpyArr)
 
 
 def init_cam():
