@@ -4,57 +4,47 @@ Assumptions:
 
 """
 from kivy.config import Config
-
-import cv2
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.lang import Builder
 from kivy.uix.image import Image
 from kivy.uix.screenmanager import ScreenManager, Screen
-import threading
+import cv2
 import sys
 
 Config.set('graphics', 'fullscreen', 'fake')  # disable the X button
 sys.path.append('..')
-
-print(sys.path)
 from Main import Utils
-
-# from scripts.Main import Utils
 
 # init and const
 Builder.load_file('htbio.kv')
 cameraID1 = Utils.find_camera()  # WARN 0 is from here - think what to do
 
 
-# cameraID1 = 1
-
-
-class SMICamera(Image):
+class ICTCamera(Image):
     def __init__(self, parent, capture, **kwargs):
-        super(SMICamera, self).__init__(**kwargs)
+        super(ICTCamera, self).__init__(**kwargs)
         self.capture = capture  # data to read
         self.parent = parent  # this object's parent (= box layout) - change the logo to the camera
         self.isRecording = False  # start recording video from SMI
         self.opticVideoWriter = None  # init for video writer
+        self.listFrames = []
+        self.deacyFrame = []
 
-        thread = threading.Thread(target=self.start, args=())
-        thread.daemon = True  # Daemonize thread
-        thread.start()
-
-        # starts the "Camera", capturing at 30 fps by default
-
+    # starts the "Camera", capturing at 30 fps by default
     def start(self, fps=30):  # TODO check fps
         Clock.schedule_interval(self.update, 1.0 / fps)  # Schedule an event to be called every <timeout> seconds.
 
     # run a video on screen
-    def update(self, dt):  # TypeError: schedule_interval() takes exactly 2 positional arguments
+    def update(self, dt):  # TypeError: schedule_interval() takes exactly 2 positional arguments, dt - delta time
         ret, self.frame = self.capture.read()
         if ret:
             if self.isRecording:  # push on start button
-                self.opticVideoWriter.write(self.frame)  # TODO if writing with this cam don't work save it in list
-                # and then save
+                # self.opticVideoWriter.write(self.frame)
+                testFrame = cv2.flip(self.frame, 0)
+                self.listFrames.append(testFrame)
+                # TODO if writing with this cam don't work save it in list and then save
             # convert it to texture & display image from the texture
             self.parent.ids['imageCamera'].texture = self.get_texture_from_frame(self.frame, 0)
 
@@ -73,6 +63,15 @@ class SMICamera(Image):
 
     def init_record_writer(self, opticVideoWriter):
         self.opticVideoWriter = opticVideoWriter
+        print("init video")
+
+    def save_video(self):
+        for i in range(len(self.listFrames)):
+            self.opticVideoWriter.write(self.listFrames[i])
+        self.opticVideoWriter.release()
+
+    def save_decay_point_frame(self):
+        self.deacyFrame.append(self.frame)
 
 
 class CameraScreen(Screen):
@@ -86,14 +85,13 @@ class CameraScreen(Screen):
         from API import LeptonAPI
         from Arduino import LedController
         if not self.isTurnOn:  # Setup for the system
-            self.capture = cv2.VideoCapture(cameraID1)  # capture SMI cam
-            self.SMICamera = SMICamera(self, self.capture)  # change the window from logo to camera
-            self.SMICamera.start()
+            self.capture = cv2.VideoCapture(cameraID1)  # capture ICT cam
+            self.ICTCamera = ICTCamera(self, self.capture)  # change the window from logo to camera
+            self.ICTCamera.start()
             # Set as started
             self.isTurnOn = True
             buttonTurnOn.text = 'Turn Off'
             # when started, let start enabled
-            # buttonStop.disabled = False  # enabled
             buttonStart.disabled = False  # Enable the Start (button)
             buttonBack.disabled = True  # Prevent the back (button)
             LeptonAPI.init_cam()  # init Lepton cam
@@ -103,11 +101,10 @@ class CameraScreen(Screen):
             self.isTurnOn = False  # stop what was "started"
             buttonTurnOn.text = 'Turn ON'
             # Reset camera to home image
-            self.SMICamera.stop()
-            self.SMICamera = Image(source='logo.jpg')
-            imageCamera.source = self.SMICamera.source  # get back to the logo
+            self.ICTCamera.stop()
+            self.ICTCamera = Image(source='logo.jpg')
+            imageCamera.source = self.ICTCamera.source  # get back to the logo
             imageCamera.reload()  # get back to the logo
-            # buttonStop.disabled = True  # Prevent the Stop (button)
             buttonStart.disabled = True  # Prevent the Start (button)
             buttonBack.disabled = False  # Enabled the back (button)
             buttonHeat.text = 'Heat'
@@ -119,8 +116,8 @@ class CameraScreen(Screen):
 
     # Start recording or stop recording
     def start_streaming(self, buttonTurnOn, buttonStart, buttonHeat):
-        from API import LeptonAPI
-        from Arduino import LedController
+        # from API import LeptonAPI
+        # from Arduino import LedController
         if not self.isRecording:  # Was running at click
             print("Running test")
             self.isRecording = True
@@ -129,11 +126,12 @@ class CameraScreen(Screen):
             buttonHeat.text = 'Cool'
             self.isHeated = True
             self.fileWriter, videoWriter, self.startTestTimeStamp = Utils.build_files()
-            self.SMICamera.init_record_writer(videoWriter)
-            self.SMICamera.start_stop_record_video()  # start film a video
+            self.ICTCamera.init_record_writer(videoWriter)
+            self.ICTCamera.start_stop_record_video()  # start film a video
             CameraScreen.run_test(self, self.fileWriter, self.startTestTimeStamp, buttonTurnOn, buttonStart, buttonHeat)
         else:
-            self.SMICamera.start_stop_record_video()
+            self.ICTCamera.start_stop_record_video()
+            self.ICTCamera.save_video()
             self.isRecording = False
             buttonTurnOn.disabled = False  # Enable the TurnOff (button)
             buttonStart.text = 'Start'
@@ -145,30 +143,25 @@ class CameraScreen(Screen):
             # LedController.stop_led()  # stop the Arduino
 
     def run_test(self, fileWriter, startTestTimeStamp, buttonTurnOn, buttonStart, buttonHeat):
-        # TODO run multi thread for the cameras & use const(from Utils) instead the numbers
-        ticker = threading.Event()
         from API import LeptonAPI
         from Arduino import LedController
-        LeptonAPI.start_lepton()
-        ticker.wait(1)
-        LeptonAPI.lepton_normalization()
-        ticker.wait(2)
-        LedController.start_led()
-        LeptonAPI.mark_heating_point()
-        ticker.wait(17)
-        LeptonAPI.lepton_normalization()
-        ticker.wait(3)
-        LedController.stop_led()
-        LeptonAPI.mark_decay_point()
-        ticker.wait(34)
-        LeptonAPI.lepton_normalization()
-        ticker.wait(3)
-        LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp)
-        CameraScreen.start_streaming(self, buttonTurnOn, buttonStart, buttonHeat)
+        # lambda dt: if you want to schedule a function that does not accept the dt argument
+        Clock.schedule_once(lambda dt: LeptonAPI.start_lepton(), Utils.startTestTime)
+        Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.startTestTime + 1)
+        Clock.schedule_once(lambda dt: LedController.start_led(), Utils.steadyStateTime)
+        Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
+        Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
+        Clock.schedule_once(lambda dt: LedController.stop_led(), Utils.decayPointFFC)
+        Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
+        Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(), Utils.decayPointFFC)
+        Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
+        Clock.schedule_once(lambda dt: LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp), Utils.stopTestFFC)
+        Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonTurnOn, buttonStart, buttonHeat),
+                            Utils.stopTestFFC)
 
     def on_off_heat(self, buttonHeat):  #
         from Arduino import LedController
-        from API import LeptonAPI
+        # from API import LeptonAPI
         if not self.isHeated:
             LedController.start_led()  # start the Arduino
             # LeptonAPI.mark_heating_point()
