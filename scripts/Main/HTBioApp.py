@@ -155,7 +155,7 @@ class CameraScreen(Screen):
         Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
         Clock.schedule_once(lambda dt: LedController.stop_led(), Utils.decayPointFFC)
         Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
-        Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter), Utils.decayPointFFC)
+        Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter), Utils.savePhotoTime)
         Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
         Clock.schedule_once(lambda dt: LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp), Utils.stopTestFFC)
         Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonTurnOn, buttonStart, buttonHeat),

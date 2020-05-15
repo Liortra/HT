@@ -14,13 +14,14 @@ heatingTime = 20
 testTime = 60
 steadyStateTime = 3
 decayPointFFC = heatingTime + steadyStateTime
+savePhotoTime = decayPointFFC + 1
 stopTestFFC = testTime - steadyStateTime
-fps = 30.0
+fps = 1.0/30  # 30.0
 
 
 def find_camera():
     # for i in range(1,10):  # 0 is laptop cam(personal laptop)
-    for i in reversed(range(10)):
+    for i in reversed(range(5)):
         cv2_cap = cv2.VideoCapture(i)
         if cv2_cap.isOpened():
             cv2_cap.release()
