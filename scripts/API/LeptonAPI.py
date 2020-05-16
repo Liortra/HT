@@ -7,11 +7,12 @@ from IR16Filters import IR16Capture, NewBytesFrameEvent
 import numpy
 # import struct
 import HTBioCreator
+import threading
 
 # init and const
 numpyArr = None
 listTemp = []
-countTempPass = 0  # counter for higher temps
+# countTempPass = 0  # counter for higher temps
 # heatTemp = 4100 + 27315  # the heat temperature
 # highTemp = False
 # header
@@ -41,8 +42,8 @@ def init_cam():
     # methods from the DLL
     capture = IR16Capture()
     capture.SetupGraphWithBytesCallback(NewBytesFrameEvent(getFrameRaw))
-    lep.rad.SetTLinearEnableStateChecked(True)  # represents temperature in Kelvin(True) or Celsius(False)
-    lep.sys.SetGainMode(CCI.Sys.GainMode.LOW)
+    # lep.rad.SetTLinearEnableStateChecked(True)  # represents temperature in Kelvin(True) or Celsius(False)
+    # lep.sys.SetGainMode(CCI.Sys.GainMode.LOW)
     print("init")
 
 
@@ -66,6 +67,8 @@ def init_cam():
 
 
 def start_lepton():
+    lep.rad.SetTLinearEnableStateChecked(True)  # represents temperature in Kelvin(True) or Celsius(False)
+    lep.sys.SetGainMode(CCI.Sys.GainMode.LOW)
     capture.RunGraph()  # Lepton cam start record
     print("start")
 
@@ -89,8 +92,8 @@ def stop_lepton(HTBioFile, startTestTimeStamp): # TODO build htbio creator
     dateX = startTestTimeStamp.encode(encoding='ascii', errors='strict')
     print("stop")
     capture.StopGraph()  # method from the DLL
-    HTBioCreator.HTBioCreator(HTBioFile, listTemp, versionId, patientId, testId,
-                                             dateX, frameWidth, frameHeight, decayPoint, heatingPoint)
+    HTBioCreator.run(HTBioFile, listTemp, versionId, patientId, testId,
+            dateX, frameWidth, frameHeight, decayPoint, heatingPoint)
     # build_header(HTBioFile, dateX)
     # for index, item in enumerate(listTemp):
     #     HTBioFile.write(struct.pack('i', index))  # index of frame in 4 byte
@@ -101,6 +104,7 @@ def stop_lepton(HTBioFile, startTestTimeStamp): # TODO build htbio creator
     # HTBioFile.close()
     listTemp.clear()
     print("clean")
+    # TODO try catch if i stop the test in middle of it
 
 
 def close_lepton():

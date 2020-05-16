@@ -149,7 +149,7 @@ class CameraScreen(Screen):
         from Arduino import LedController
         # lambda dt: if you want to schedule a function that does not accept the dt argument
         Clock.schedule_once(lambda dt: LeptonAPI.start_lepton(), Utils.startTestTime)
-        Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.startTestTime + 1)
+        Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.normalizationTimeFirst)
         Clock.schedule_once(lambda dt: LedController.start_led(), Utils.steadyStateTime)
         Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
         Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
@@ -161,7 +161,7 @@ class CameraScreen(Screen):
         Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonTurnOn, buttonStart, buttonHeat),
                             Utils.stopTestFFC)
 
-    def on_off_heat(self, buttonHeat):  #
+    def on_off_heat(self, buttonHeat):
         from Arduino import LedController
         # from API import LeptonAPI
         if not self.isHeated:

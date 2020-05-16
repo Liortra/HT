@@ -10,13 +10,13 @@ import os.path
 
 # const
 startTestTime = 1
+normalizationTimeFirst = startTestTime + 1
 heatingTime = 20
 testTime = 60
 steadyStateTime = 3
 decayPointFFC = heatingTime + steadyStateTime
 savePhotoTime = decayPointFFC + 1
 stopTestFFC = testTime - steadyStateTime
-fps = 1.0/30  # 30.0
 
 
 def find_camera():
@@ -47,11 +47,10 @@ def build_files(capture):
     videoName = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameVideo))
     videoWriterFourcc = cv2.VideoWriter_fourcc(*'mp4v')  # http://www.fourcc.org/codecs.php - list of available codes
     # TODO change resolution  - f
-    # capture.set(3,2592)
-    # capture.set(4,1944)
-    videoWriter = cv2.VideoWriter(videoName, videoWriterFourcc, fps, (int(capture.get(3)), int(capture.get(4))))
-    # print(int(capture.get(3)))
-    # print(int(capture.get(4)))
+    # print(int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)))
+    # print(int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    fps = capture.get(cv2.CAP_PROP_FPS)
+    videoWriter = cv2.VideoWriter(videoName, videoWriterFourcc, 1.0/fps, (int(capture.get(3)), int(capture.get(4))))
     # (const String &filename, int fourcc, double fps, Size frameSize(width,height))
     # int(capture.get(3) = 1280 & int(capture.get(4) = 720
     # Setting for saving HTBio HTBioFile from Lepton cam
