@@ -1,5 +1,4 @@
 from serial import Serial  # you need to install the pySerial :pyserial.sourceforge.net
-import time
 
 
 def on_off_function(command):

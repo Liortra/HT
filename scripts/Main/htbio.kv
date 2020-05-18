@@ -1,73 +1,30 @@
-<MainScreen>
-    GridLayout:
-        rows:3
-        cols:2
-        padding: 10
-        spacing: 10
-        Label:
-            id: label_doc
-            text: 'Please enter your name'
-        TextInput:
-            id: docName
-            hint_text:'Enter Name'
-        Label:
-            id: label_ID
-            text: 'Please enter ID'
-        TextInput:
-            id: personID
-            hint_text:'Enter ID'
-        Button:
-            text: "Next"
-            size_hint_y: None
-            width: 150
-            height: 50
-            on_release:
-                app.root.transition.direction = 'left'
-                app.root.current = 'camera'
-        Button:
-            text: "Exit"
-            size_hint_y: None
-            width: 150
-            height: 50
-            on_release: root.exit_app()
-
 <CameraScreen>:
     GridLayout:
         rows: 5
         spacing: 20
         padding: 20
         Image:
-            id: imageCamera  # logo will be present by this id and the camera
-            source: 'logo.jpg' # show the logo in the beginning
-        Button:
-            id: buttonTurnOn
-            text: 'Turn ON'
-            on_press: root.init_camera(imageCamera, buttonTurnOn, buttonStart, buttonBack, buttonHeat)
-            height: 50
-            size_hint_y: None
-            disabled: False
+            id: imageCamera
         Button:
             id: buttonStart
             text: 'Start'
-            on_press: root.start_streaming(buttonTurnOn, buttonStart, buttonHeat)
+            on_press: root.start_streaming(buttonStart, buttonHeat, buttonExit)
             height: 50
             size_hint_y: None
-            disabled: True
+            disabled: False
         Button:
             id: buttonHeat
             text: 'Heat'
             on_press: root.on_off_heat(buttonHeat)
             height: 50
             size_hint_y: None
-            disabled: True
+            disabled: False
         Button:
-            id: buttonBack
-            text: "Back"
+            id: buttonExit
+            text: "Exit"
             size_hint_y: None
             width: 150
             height: 50
             disabled: False
             on_release:
                 root.close_camera()
-                app.root.transition.direction = 'right'
-                app.root.current = 'main'
