@@ -1,14 +1,7 @@
 HTBioApp
 
 Workflow of the system:
-1) First window is for input from the user.
-2) click next to get in the system.
-3) click turn on to activate the system.
-4) click start to start the record.
-5) the test running automatic - need to fix this
-7) click turn off to teardown the system.
-8) click back to user input window.
-9) click exit to close the GUI.
+1) Window with start , heat and exit
 
 I'm working with: (in future, write the steps to activate the system)
 * python 3.7.4
@@ -21,5 +14,4 @@ I'm working with: (in future, write the steps to activate the system)
 ** check PYTHONPATH or sys.path.append("..")
 
 ** what left:
-1. fix the start test - the time(i put number for the test)
-2. fix the show cam with the start cam without interrupt.
+1. Adding button to start the test
