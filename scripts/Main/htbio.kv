@@ -5,6 +5,7 @@
         padding: 20
         Image:
             id: imageCamera
+            source: 'logo.jpg'
         Button:
             id: buttonStart
             text: 'Start'
@@ -15,7 +16,7 @@
         Button:
             id: buttonHeat
             text: 'Heat'
-            on_press: root.on_off_heat(buttonHeat)
+            on_press: root.on_off_heat(buttonStart, buttonHeat)
             height: 50
             size_hint_y: None
             disabled: False

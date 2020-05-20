@@ -2,6 +2,7 @@
 #define BUTTON 3
 
 // Using http://slides.justen.eng.br/python-e-arduino as refference
+// https://stackoverflow.com/questions/54662362/sending-signal-from-arduino-serial-to-a-python-program
 int buttonState = 0;         // variable for reading the pushbutton status
 
 void setup() {
@@ -24,7 +25,5 @@ void loop() {
     if (buttonState == HIGH) {
       Serial.print('1');
       delay(100);
-    } else {
-     Serial.print('0');
-    } 
+    }
 }

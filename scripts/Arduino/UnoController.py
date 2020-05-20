@@ -2,7 +2,7 @@ from serial import Serial  # you need to install the pySerial :pyserial.sourcefo
 import sys
 sys.path.append('..')
 # import time
-from Main import HTBioApp
+# from Main import HTBioApp
 
 
 def on_off_function(command):
@@ -38,16 +38,16 @@ def stop_led():
 def close_led():
     on_off_function("bye")
 
+# TODO combine button to start_streaming
+# def start_button(self, buttonStart, buttonHeat, buttonExit, boolean):
+#     while boolean:
+#         command = arduino.read().decode('utf-8')
+#         if command:
+#             # flush serial for unprocessed data
+#             arduino.flushInput()
+#             if str(command) == '1':
+#                 print("Playing test")
+#                 boolean = False
+#                 HTBioApp.CameraScreen.start_streaming(self, buttonStart, buttonHeat, buttonExit)
 
-def start_button(self, buttonStart, buttonHeat, buttonExit):
-    while True:
-        command = arduino.read().decode('utf-8')
-        if command:
-            # flush serial for unprocessed data
-            arduino.flushInput()
-            print("new command:", command)
-            if str(command) == '1':
-                print("Playing test")
-                break
-    print("stop loop")
-    HTBioApp.CameraScreen.start_streaming(self, buttonStart, buttonHeat, buttonExit)
+

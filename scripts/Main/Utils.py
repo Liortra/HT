@@ -20,13 +20,15 @@ stopTestFFC = testTime - steadyStateTime
 
 
 def find_camera():
-    # for i in range(1,10):  # 0 is laptop cam(personal laptop)
+    # for i in range(0,5):  # 0 is laptop cam(personal laptop)
     for i in reversed(range(5)):
         cv2_cap = cv2.VideoCapture(i)
         if cv2_cap.isOpened():
-            cv2_cap.release()
-            cv2.destroyAllWindows()
-            return i
+            ret, frame = cv2_cap.read()
+            if ret:
+                cv2_cap.release()
+                cv2.destroyAllWindows()
+                return i
 
     if not cv2_cap.isOpened():
         print("Camera not found!")
@@ -46,13 +48,9 @@ def build_files(capture):
     # Setting for saving the ICT videoWriter
     videoName = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameVideo))
     videoWriterFourcc = cv2.VideoWriter_fourcc(*'mp4v')  # http://www.fourcc.org/codecs.php - list of available codes
-    # TODO change resolution  - f
-    # print(int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)))
-    # print(int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     fps = capture.get(cv2.CAP_PROP_FPS)
     videoWriter = cv2.VideoWriter(videoName, videoWriterFourcc, 1.0/fps, (int(capture.get(3)), int(capture.get(4))))
     # (const String &filename, int fourcc, double fps, Size frameSize(width,height))
-    # int(capture.get(3) = 1280 & int(capture.get(4) = 720
     # Setting for saving HTBio HTBioFile from Lepton cam
     filename = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameFile))
     HTBioFile = open(filename, 'wb+')

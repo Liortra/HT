@@ -59,16 +59,16 @@ def mark_decay_point():
 
 
 def mark_heating_point():
-    global heatingPoint  # 4 byte # thr frame i started heating
+    global heatingPoint  # 4 byte # the frame i start heating
     heatingPoint = len(listTemp) - 1
 
 
-def stop_lepton(HTBioFile, startTestTimeStamp): # TODO build htbio creator
+def stop_lepton(HTBioFile, startTestTimeStamp):
     dateX = startTestTimeStamp.encode(encoding='ascii', errors='strict')
     print("stop")
     capture.StopGraph()  # method from the DLL
-    HTBioCreator.run(HTBioFile, listTemp, versionId, patientId, testId,
-            dateX, frameWidth, frameHeight, decayPoint, heatingPoint)
+    HTBioCreator.run(HTBioFile, listTemp, versionId, patientId, testId, dateX, frameWidth,
+                     frameHeight, decayPoint, heatingPoint)
     listTemp.clear()
     print("clean")
     # TODO try catch if i stop the test in middle of it

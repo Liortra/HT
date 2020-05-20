@@ -10,12 +10,14 @@ from kivy.graphics.texture import Texture
 from kivy.lang import Builder
 from kivy.uix.image import Image
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.core.window import Window
 import cv2
 import threading
 import sys
 
 Config.set('graphics', 'fullscreen', 'fake')  # disable the X button
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')  # disable right click red dot
+Window.size = (1080, 720)   # change the size of the window
 sys.path.append('..')
 from Main import Utils
 
@@ -46,7 +48,6 @@ class ICTCamera(Image):
     def update(self, dt):  # TypeError: schedule_interval() takes exactly 2 positional arguments, dt - delta time
         ret, self.frame = self.capture.read()
         if ret:
-            self.frame.shape
             if self.isRecording:  # push on start button
                 self.opticVideoWriter.write(self.frame)  # make mp4 video
             # convert it to texture & display image from the texture
@@ -75,7 +76,6 @@ class ICTCamera(Image):
 
     def save_decay_point_frame(self, photoWriter):
         cv2.imwrite(photoWriter, self.frame)
-        # self.decayFrame.append(self.frame)
 
 
 class CameraScreen(Screen):
@@ -94,81 +94,104 @@ class CameraScreen(Screen):
         from Arduino import UnoController
         if not self.isTurnOn:  # Setup for the system
             self.capture = cv2.VideoCapture(cameraID1)  # capture ICT cam
+            self.capture.set(3, 1920)  # 1920X1080 / 2592X1944 / 1280X720 - default
+            self.capture.set(4, 1080)  # TODO change resolution  - f
+            print(int(self.capture.get(3)))
+            print(int(self.capture.get(4)))
             self.ICTCamera = ICTCamera(self, self.capture)  # change the window from logo to camera
             self.ICTCamera.start()
             LeptonAPI.init_cam()  # init Lepton cam
             UnoController.init_led()  # start the Arduino
             # Set as started
             self.isTurnOn = True
-            # sending the ids of the buttons to start_streaming from LedController
-            thread2 = threading.Thread(target=UnoController.start_button, args=(self, self.ids['buttonStart'],
-                                                                                self.ids['buttonHeat'],
-                                                                                self.ids['buttonExit']))
-            thread2.daemon = True  # Daemonize thread
-            thread2.start()
+            # self.button_thread(True)  # get back here line 113-118
         else:  # press on TurnOff = teardown for the system
-            # Reset camera to home image
-            self.ICTCamera.stop()
+            UnoController.stop_led()  # Turn Off the led
+            self.ICTCamera.stop()  # Stop the camera
             self.capture.release()  # Release the capture
             LeptonAPI.close_lepton()  # closing Lepton cam
             UnoController.close_led()  # closing Led
             self.isTurnOn = False  # stop what was "started"
             self.isHeated = False
 
+    # def button_thread(self,boolean):
+    #     from Arduino import UnoController
+    #     # sending the ids of the buttons to start_streaming from LedController
+    #     self.thread2 = threading.Thread(target=UnoController.start_button, args=(self, self.ids['buttonStart'],
+    #                                                                              self.ids['buttonHeat'],
+    #                                                                              self.ids['buttonExit'],boolean))
+    #     self.thread2.daemon = True  # Daemonize thread
+    #     self.thread2.start()
+
     # Start recording or stop recording
     def start_streaming(self, buttonStart, buttonHeat, buttonExit):
+        from Arduino import UnoController
         if not self.isRecording:  # Was running at click
             print("Running test")
             self.isRecording = True
             buttonExit.disabled = True  # Disable the Exit (button)
+            buttonHeat.disabled = True  # Disable the Heat (button)
             buttonStart.text = 'Stop'
-            buttonHeat.text = 'Cool'
-            self.isHeated = True
             self.fileWriter, videoWriter, self.photoWriter, self.startTestTimeStamp = Utils.build_files(self.capture)
             self.ICTCamera.init_record_writer(videoWriter)
             self.ICTCamera.start_stop_record_video()  # start film a video
             CameraScreen.run_test(self, self.fileWriter, self.photoWriter, self.startTestTimeStamp,
                                   buttonStart, buttonHeat, buttonExit)
+            # self.button_thread(False)
         else:  # TODO when push on stop button manually
+            UnoController.stop_led()  # Turn Off the led
             self.ICTCamera.start_stop_record_video()
+            CameraScreen.stop_test(self)  # cancel all run_test(for push stop manually)
             self.isRecording = False
-            buttonExit.disabled = False  # Enable the TurnOff (button)
+            buttonExit.disabled = False  # Enable the Exit (button)
+            buttonHeat.disabled = False  # Enable the Heat (button)
             buttonStart.text = 'Start'
-            buttonHeat.text = 'Heat'
-            self.isHeated = False
             print("Test end")
-            # LeptonAPI.mark_decay_point()
-            # LeptonAPI.stop_lepton(self.fileWriter, self.startTestTimeStamp)  # stop lepton film
-            # LedController.stop_led()  # stop the Arduino
+            # self.button_thread(True)
 
     def run_test(self, fileWriter, photoWriter, startTestTimeStamp, buttonStart, buttonHeat, buttonExit):
         from API import LeptonAPI
         from Arduino import UnoController
         # lambda dt: if you want to schedule a function that does not accept the dt argument
-        Clock.schedule_once(lambda dt: LeptonAPI.start_lepton(), Utils.startTestTime)
-        Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.normalizationTimeFirst)
-        Clock.schedule_once(lambda dt: UnoController.start_led(), Utils.steadyStateTime)
-        Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
-        Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
-        Clock.schedule_once(lambda dt: UnoController.stop_led(), Utils.decayPointFFC)
-        Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
-        Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter), Utils.savePhotoTime)
-        Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
-        Clock.schedule_once(lambda dt: LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp), Utils.stopTestFFC)
-        Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonStart, buttonHeat, buttonExit),
-                            Utils.stopTestFFC)
+        # by creating event the clock activate the method
+        self.event1 = Clock.schedule_once(lambda dt: LeptonAPI.start_lepton(), Utils.startTestTime)
+        self.event2 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.normalizationTimeFirst)
+        self.event3 = Clock.schedule_once(lambda dt: UnoController.start_led(), Utils.steadyStateTime)
+        self.event4 = Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
+        self.event5 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
+        self.event6 = Clock.schedule_once(lambda dt: UnoController.stop_led(), Utils.decayPointFFC)
+        self.event7 = Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
+        self.event8 = Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter),
+                                          Utils.savePhotoTime)
+        self.event9 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
+        self.event10 = Clock.schedule_once(lambda dt: LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp),
+                                           Utils.stopTestFFC)
+        self.event11 = Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonStart, buttonHeat,
+                                                                                   buttonExit), Utils.stopTestFFC)
 
-    def on_off_heat(self, buttonHeat):
+    def stop_test(self):  # Cancel all events
+        self.event1.cancel()
+        self.event2.cancel()
+        self.event3.cancel()
+        self.event4.cancel()
+        self.event5.cancel()
+        self.event6.cancel()
+        self.event7.cancel()
+        self.event8.cancel()
+        self.event9.cancel()
+        self.event10.cancel()
+        self.event11.cancel()
+
+    def on_off_heat(self,buttonStart, buttonHeat):
         from Arduino import UnoController
-        # from API import LeptonAPI
         if not self.isHeated:
-            UnoController.start_led()  # start the Arduino
-            # LeptonAPI.mark_heating_point()
+            buttonStart.disabled = True  # Disable the Start (button)
+            UnoController.start_led()  # Turn On the led
             self.isHeated = True
             buttonHeat.text = 'Cool'
         else:
-            UnoController.stop_led()  # stop the Arduino
-            # LeptonAPI.mark_decay_point()
+            buttonStart.disabled = False  # Enable the Start (button)
+            UnoController.stop_led()  # Turn Off the led
             self.isHeated = False
             buttonHeat.text = 'Heat'
 
