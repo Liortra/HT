@@ -80,6 +80,7 @@ class ICTCamera(Image):
 
 class CameraScreen(Screen):
     def __init__(self, **kw):
+        from Arduino import UnoController
         # initialize the "Camera"
         super().__init__(**kw)
         self.isTurnOn = False
@@ -90,21 +91,27 @@ class CameraScreen(Screen):
     # init and close the system
     def init_camera(self):
         from API import LeptonAPI
-        from Arduino import LedController
+        from Arduino import UnoController
         if not self.isTurnOn:  # Setup for the system
             self.capture = cv2.VideoCapture(cameraID1)  # capture ICT cam
             self.ICTCamera = ICTCamera(self, self.capture)  # change the window from logo to camera
             self.ICTCamera.start()
             LeptonAPI.init_cam()  # init Lepton cam
-            LedController.init_led()  # start the Arduino
+            UnoController.init_led()  # start the Arduino
             # Set as started
             self.isTurnOn = True
+            # sending the ids of the buttons to start_streaming from LedController
+            thread2 = threading.Thread(target=UnoController.start_button, args=(self, self.ids['buttonStart'],
+                                                                                self.ids['buttonHeat'],
+                                                                                self.ids['buttonExit']))
+            thread2.daemon = True  # Daemonize thread
+            thread2.start()
         else:  # press on TurnOff = teardown for the system
             # Reset camera to home image
             self.ICTCamera.stop()
             self.capture.release()  # Release the capture
             LeptonAPI.close_lepton()  # closing Lepton cam
-            LedController.close_led()  # closing Led
+            UnoController.close_led()  # closing Led
             self.isTurnOn = False  # stop what was "started"
             self.isHeated = False
 
@@ -136,14 +143,14 @@ class CameraScreen(Screen):
 
     def run_test(self, fileWriter, photoWriter, startTestTimeStamp, buttonStart, buttonHeat, buttonExit):
         from API import LeptonAPI
-        from Arduino import LedController
+        from Arduino import UnoController
         # lambda dt: if you want to schedule a function that does not accept the dt argument
         Clock.schedule_once(lambda dt: LeptonAPI.start_lepton(), Utils.startTestTime)
         Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.normalizationTimeFirst)
-        Clock.schedule_once(lambda dt: LedController.start_led(), Utils.steadyStateTime)
+        Clock.schedule_once(lambda dt: UnoController.start_led(), Utils.steadyStateTime)
         Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
         Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
-        Clock.schedule_once(lambda dt: LedController.stop_led(), Utils.decayPointFFC)
+        Clock.schedule_once(lambda dt: UnoController.stop_led(), Utils.decayPointFFC)
         Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
         Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter), Utils.savePhotoTime)
         Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
@@ -152,15 +159,15 @@ class CameraScreen(Screen):
                             Utils.stopTestFFC)
 
     def on_off_heat(self, buttonHeat):
-        from Arduino import LedController
+        from Arduino import UnoController
         # from API import LeptonAPI
         if not self.isHeated:
-            LedController.start_led()  # start the Arduino
+            UnoController.start_led()  # start the Arduino
             # LeptonAPI.mark_heating_point()
             self.isHeated = True
             buttonHeat.text = 'Cool'
         else:
-            LedController.stop_led()  # stop the Arduino
+            UnoController.stop_led()  # stop the Arduino
             # LeptonAPI.mark_decay_point()
             self.isHeated = False
             buttonHeat.text = 'Heat'
