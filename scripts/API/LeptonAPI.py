@@ -5,7 +5,7 @@ clr.AddReference("ManagedIR16Filters")
 from Lepton import CCI
 from IR16Filters import IR16Capture, NewBytesFrameEvent
 import numpy
-import HTBioCreator
+from Utils import HTBioCreator
 
 # init and const
 numpyArr = None

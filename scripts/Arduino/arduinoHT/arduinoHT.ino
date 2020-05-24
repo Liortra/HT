@@ -23,7 +23,7 @@ void loop() {
     }
     buttonState = digitalRead(BUTTON);
     if (buttonState == HIGH) {
-      Serial.print('1');
+      Serial.println('1');
       delay(100);
     }
 }
