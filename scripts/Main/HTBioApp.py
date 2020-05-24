@@ -19,13 +19,17 @@ Config.set('graphics', 'fullscreen', 'fake')  # disable the X button
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')  # disable right click red dot
 Window.size = (1080, 720)   # change the size of the window
 sys.path.append('..')
-from Main import Utils
+from Utils import Utils
+# from Utils import WindowsInhibitor
 
 # init and const
+#  osSleep = WindowsInhibitor()
+# osSleep.inhibit()  # prevent windows to sleep
 Builder.load_file('htbio.kv')
 cameraID1 = Utils.find_camera()  # find the port of the camera
 
 
+# https://answers.opencv.org/question/75867/usb-camera-disconnectionreconnection/ - check this
 class ICTCamera(Image):
     def __init__(self, parent, capture, **kwargs):
         super(ICTCamera, self).__init__(**kwargs)
@@ -80,7 +84,6 @@ class ICTCamera(Image):
 
 class CameraScreen(Screen):
     def __init__(self, **kw):
-        from Arduino import UnoController
         # initialize the "Camera"
         super().__init__(**kw)
         self.isTurnOn = False
@@ -157,16 +160,17 @@ class CameraScreen(Screen):
         self.event1 = Clock.schedule_once(lambda dt: LeptonAPI.start_lepton(), Utils.startTestTime)
         self.event2 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.normalizationTimeFirst)
         self.event3 = Clock.schedule_once(lambda dt: UnoController.start_led(), Utils.steadyStateTime)
-        self.event4 = Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
-        self.event5 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
-        self.event6 = Clock.schedule_once(lambda dt: UnoController.stop_led(), Utils.decayPointFFC)
-        self.event7 = Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
-        self.event8 = Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter),
+        self.event4 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatFFC)
+        self.event5 = Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
+        self.event6 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
+        self.event7 = Clock.schedule_once(lambda dt: UnoController.stop_led(), Utils.decayPointFFC)
+        self.event8 = Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
+        self.event9 = Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter),
                                           Utils.savePhotoTime)
-        self.event9 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
-        self.event10 = Clock.schedule_once(lambda dt: LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp),
+        self.event10 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
+        self.event11 = Clock.schedule_once(lambda dt: LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp),
                                            Utils.stopTestFFC)
-        self.event11 = Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonStart, buttonHeat,
+        self.event12 = Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonStart, buttonHeat,
                                                                                    buttonExit), Utils.stopTestFFC)
 
     def stop_test(self):  # Cancel all events
@@ -181,6 +185,7 @@ class CameraScreen(Screen):
         self.event9.cancel()
         self.event10.cancel()
         self.event11.cancel()
+        self.event12.cancel()
 
     def on_off_heat(self,buttonStart, buttonHeat):
         from Arduino import UnoController

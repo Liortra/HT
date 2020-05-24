@@ -11,9 +11,10 @@ import os.path
 # const
 startTestTime = 1
 normalizationTimeFirst = startTestTime + 1
-heatingTime = 20
+heatingTime = 15
 testTime = 60
 steadyStateTime = 3
+heatFFC = heatingTime + 5
 decayPointFFC = heatingTime + steadyStateTime
 savePhotoTime = decayPointFFC + 1
 stopTestFFC = testTime - steadyStateTime
