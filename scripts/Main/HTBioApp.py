@@ -3,6 +3,7 @@ Assumptions:
 
 
 """
+
 from kivy.config import Config
 from kivy.app import App
 from kivy.clock import Clock
@@ -19,17 +20,16 @@ Config.set('graphics', 'fullscreen', 'fake')  # disable the X button
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')  # disable right click red dot
 Window.size = (1080, 720)   # change the size of the window
 sys.path.append('..')
+from Utils.Utils import catch_exception
 from Utils import Utils
-# from Utils import WindowsInhibitor
+from Utils import WindowsInhibitor
 
 # init and const
-#  osSleep = WindowsInhibitor()
-# osSleep.inhibit()  # prevent windows to sleep
+osSleep = WindowsInhibitor.WindowsInhibitor()
+osSleep.inhibit()  # prevent windows to sleep
 Builder.load_file('htbio.kv')
-cameraID1 = Utils.find_camera()  # find the port of the camera
 
 
-# https://answers.opencv.org/question/75867/usb-camera-disconnectionreconnection/ - check this
 class ICTCamera(Image):
     def __init__(self, parent, capture, **kwargs):
         super(ICTCamera, self).__init__(**kwargs)
@@ -37,7 +37,7 @@ class ICTCamera(Image):
         self.parent = parent  # this object's parent (= box layout) - change the logo to the camera
         self.isRecording = False  # start recording video from SMI
         self.opticVideoWriter = None  # init for video writer
-        self.decayFrame = []
+        self.fps = capture.get(cv2.CAP_PROP_FPS)
 
         thread = threading.Thread(target=self.start, args=())
         thread.daemon = True  # Daemonize thread
@@ -56,6 +56,10 @@ class ICTCamera(Image):
                 self.opticVideoWriter.write(self.frame)  # make mp4 video
             # convert it to texture & display image from the texture
             self.parent.ids['imageCamera'].texture = self.get_texture_from_frame(self.frame, 0)
+        else:  # TODO if the camera is disconnected
+            print("Cam disconnect")
+            self.stop()
+            # CameraScreen.reconnect()
 
     def stop(self):
         Clock.unschedule(self.update)
@@ -96,11 +100,10 @@ class CameraScreen(Screen):
         from API import LeptonAPI
         from Arduino import UnoController
         if not self.isTurnOn:  # Setup for the system
+            cameraID1 = Utils.find_camera()  # find the port of the camera
             self.capture = cv2.VideoCapture(cameraID1)  # capture ICT cam
             self.capture.set(3, 1920)  # 1920X1080 / 2592X1944 / 1280X720 - default
-            self.capture.set(4, 1080)  # TODO change resolution  - f
-            print(int(self.capture.get(3)))
-            print(int(self.capture.get(4)))
+            self.capture.set(4, 1080)
             self.ICTCamera = ICTCamera(self, self.capture)  # change the window from logo to camera
             self.ICTCamera.start()
             LeptonAPI.init_cam()  # init Lepton cam
@@ -141,7 +144,7 @@ class CameraScreen(Screen):
             CameraScreen.run_test(self, self.fileWriter, self.photoWriter, self.startTestTimeStamp,
                                   buttonStart, buttonHeat, buttonExit)
             # self.button_thread(False)
-        else:  # TODO when push on stop button manually
+        else:
             UnoController.stop_led()  # Turn Off the led
             self.ICTCamera.start_stop_record_video()
             CameraScreen.stop_test(self)  # cancel all run_test(for push stop manually)
@@ -157,23 +160,23 @@ class CameraScreen(Screen):
         from Arduino import UnoController
         # lambda dt: if you want to schedule a function that does not accept the dt argument
         # by creating event the clock activate the method
-        self.event1 = Clock.schedule_once(lambda dt: LeptonAPI.start_lepton(), Utils.startTestTime)
-        self.event2 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.normalizationTimeFirst)
+        self.event1 = Clock.schedule_once(lambda dt: LeptonAPI.start_lepton(), 0)
+        self.event2 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.FFCFirstTime)
         self.event3 = Clock.schedule_once(lambda dt: UnoController.start_led(), Utils.steadyStateTime)
-        self.event4 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatFFC)
-        self.event5 = Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
-        self.event6 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.heatingTime)
-        self.event7 = Clock.schedule_once(lambda dt: UnoController.stop_led(), Utils.decayPointFFC)
-        self.event8 = Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPointFFC)
+        self.event4 = Clock.schedule_once(lambda dt: LeptonAPI.mark_heating_point(), Utils.steadyStateTime)
+        self.event5 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.FFCSecondTime)
+        self.event6 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.FFCThirdTime)
+        self.event7 = Clock.schedule_once(lambda dt: UnoController.stop_led(), Utils.decayPoint)
+        self.event8 = Clock.schedule_once(lambda dt: LeptonAPI.mark_decay_point(), Utils.decayPoint)
         self.event9 = Clock.schedule_once(lambda dt: self.ICTCamera.save_decay_point_frame(photoWriter),
                                           Utils.savePhotoTime)
         self.event10 = Clock.schedule_once(lambda dt: LeptonAPI.lepton_normalization(), Utils.stopTestFFC)
         self.event11 = Clock.schedule_once(lambda dt: LeptonAPI.stop_lepton(fileWriter, startTestTimeStamp),
-                                           Utils.stopTestFFC)
+                                           Utils.testTime)
         self.event12 = Clock.schedule_once(lambda dt: CameraScreen.start_streaming(self, buttonStart, buttonHeat,
-                                                                                   buttonExit), Utils.stopTestFFC)
+                                                                                   buttonExit), Utils.testTime)
 
-    def stop_test(self):  # Cancel all events
+    def stop_test(self):  # Cancel all events if i push the button
         self.event1.cancel()
         self.event2.cancel()
         self.event3.cancel()
@@ -200,6 +203,15 @@ class CameraScreen(Screen):
             self.isHeated = False
             buttonHeat.text = 'Heat'
 
+    # def reconnect(self):
+    #     self.capture.release()  # Release the capture
+    #     cameraID1 = Utils.find_camera()  # find the port of the camera
+    #     self.capture = cv2.VideoCapture(cameraID1)  # capture ICT cam
+    #     self.capture.set(3, 1920)  # 1920X1080 / 2592X1944 / 1280X720 - default
+    #     self.capture.set(4, 1080)
+    #     self.ICTCamera = self.ICTCamera(self, self.capture)  # change the window from logo to camera
+    #     self.ICTCamera.start()
+
     def close_camera(self):  # it's here for future function
         print("Closing System")
         self.init_camera()
@@ -207,6 +219,7 @@ class CameraScreen(Screen):
 
 
 class MainApp(App):
+    @catch_exception
     def build(self):
         screenManager = ScreenManager()
         screenManager.add_widget(CameraScreen(name="camera"))
@@ -216,3 +229,4 @@ class MainApp(App):
 # Start the MainApp
 if __name__ == '__main__':
     MainApp().run()
+

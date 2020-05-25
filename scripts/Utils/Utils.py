@@ -7,16 +7,17 @@
 import cv2  # https://docs.opencv.org/master/d6/d00/tutorial_py_root.html
 from datetime import datetime
 import os.path
+import functools
 
 # const
-startTestTime = 1
-normalizationTimeFirst = startTestTime + 1
-heatingTime = 15
-testTime = 60
+FFCFirstTime = 1
 steadyStateTime = 3
-heatFFC = heatingTime + 5
-decayPointFFC = heatingTime + steadyStateTime
-savePhotoTime = decayPointFFC + 1
+heatingTime = 12
+testTime = 60
+FFCSecondTime = steadyStateTime + 5
+FFCThirdTime = heatingTime + steadyStateTime - 2
+decayPoint = heatingTime + steadyStateTime
+savePhotoTime = decayPoint + 1
 stopTestFFC = testTime - steadyStateTime
 
 
@@ -50,9 +51,20 @@ def build_files(capture):
     videoName = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameVideo))
     videoWriterFourcc = cv2.VideoWriter_fourcc(*'mp4v')  # http://www.fourcc.org/codecs.php - list of available codes
     fps = capture.get(cv2.CAP_PROP_FPS)
-    videoWriter = cv2.VideoWriter(videoName, videoWriterFourcc, 1.0/fps, (int(capture.get(3)), int(capture.get(4))))
+    videoWriter = cv2.VideoWriter(videoName, videoWriterFourcc, fps, (int(capture.get(3)), int(capture.get(4))))
     # (const String &filename, int fourcc, double fps, Size frameSize(width,height))
     # Setting for saving HTBio HTBioFile from Lepton cam
     filename = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameFile))
     HTBioFile = open(filename, 'wb+')
     return HTBioFile, videoWriter, photoName, startTestTimeStamp
+
+
+def catch_exception(f):
+    @functools.wraps(f)
+    def func(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            print('Caught an exception in', f.__name__)
+
+    return func

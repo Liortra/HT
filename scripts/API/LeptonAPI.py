@@ -6,6 +6,7 @@ from Lepton import CCI
 from IR16Filters import IR16Capture, NewBytesFrameEvent
 import numpy
 from Utils import HTBioCreator
+from Utils.Utils import catch_exception
 
 # init and const
 numpyArr = None
@@ -56,13 +57,16 @@ def lepton_normalization():
 def mark_decay_point():
     global decayPoint  # 4 byte # the frame i stop heating
     decayPoint = len(listTemp) - 1
+    print("decay point")
 
 
 def mark_heating_point():
     global heatingPoint  # 4 byte # the frame i start heating
     heatingPoint = len(listTemp) - 1
+    print("heating point")
 
 
+@catch_exception
 def stop_lepton(HTBioFile, startTestTimeStamp):
     dateX = startTestTimeStamp.encode(encoding='ascii', errors='strict')
     print("stop")
@@ -71,7 +75,6 @@ def stop_lepton(HTBioFile, startTestTimeStamp):
                      frameHeight, decayPoint, heatingPoint)
     listTemp.clear()
     print("clean")
-    # TODO try catch if i stop the test in middle of it
 
 
 def close_lepton():
