@@ -9,6 +9,8 @@ I'm working with: (in future, write the steps to activate the system)
 * https://kivy.org/doc/stable/installation/installation-windows.html#install-win-dist - before work with Kivy
 * https://lepton.flir.com/getting-started/quick-start-guide-getting-started-programing-with-python-sdk/ - install visual studio
 * list of all pip install - pip install pythonnet jupyterlab numpy matplotlib
+* pip install pySerial - for arduino & and change COM
+* pip install opencv-python - for openCV (cv2)
 * unblock folder + files
 
 ** check PYTHONPATH or sys.path.append("..")
