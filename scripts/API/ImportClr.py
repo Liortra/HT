@@ -14,8 +14,6 @@ else:
 sys.path.append(os.path.join("..", *folder))
 sys.path.append(os.path.join(*folder))
 
-# sys.path.append(os.path.join("..", "..", "ir16filters", *folder))
-
 clr.AddReference("LeptonUVC")
 clr.AddReference('System.Drawing')
 

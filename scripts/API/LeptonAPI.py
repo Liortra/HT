@@ -11,7 +11,7 @@ from Utils.Utils import catch_exception
 # init and const
 numpyArr = None
 listTemp = []
-# header
+# header  - need to be dynamic, getting input from the user
 versionId = 2  # 1 byte
 patientId = 11  # 4 byte
 testId = 111  # 4 byte
@@ -31,6 +31,7 @@ def getFrameRaw(arr, width, height):
     listTemp.append(numpyArr)
 
 
+@catch_exception
 def init_cam():
     global capture
     # Build an IR16 capture device
@@ -42,6 +43,7 @@ def init_cam():
     print("init")
 
 
+@catch_exception
 def start_lepton():
     lep.rad.SetTLinearEnableStateChecked(True)  # represents temperature in Kelvin(True) or Celsius(False)
     lep.sys.SetGainMode(CCI.Sys.GainMode.LOW)

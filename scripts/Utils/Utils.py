@@ -15,7 +15,7 @@ savePhotoTime = decayPoint + 1
 stopTestFFC = testTime - steadyStateTime
 
 
-def find_camera():
+def find_camera():  # TODO find a way that it capture the correct camera
     # for i in range(0,5):  # 0 is laptop cam(personal laptop)
     for i in reversed(range(5)):
         cv2_cap = cv2.VideoCapture(i)
@@ -40,7 +40,7 @@ def build_files(capture):
     nameFile = startTestTimeStamp + '.HTBio'
     nameVideo = startTestTimeStamp + '.mp4'
     namePhoto = startTestTimeStamp + '.jpg'
-    photoName = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", namePhoto))
+    photoWriter = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", namePhoto))
     # Setting for saving the ICT videoWriter
     videoName = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameVideo))
     videoWriterFourcc = cv2.VideoWriter_fourcc(*'mp4v')  # http://www.fourcc.org/codecs.php - list of available codes
@@ -50,7 +50,7 @@ def build_files(capture):
     # Setting for saving HTBio HTBioFile from Lepton cam
     filename = os.path.abspath(os.path.join(basePath, "..", "HTBio_files/", nameFile))
     HTBioFile = open(filename, 'wb+')
-    return HTBioFile, videoWriter, photoName, startTestTimeStamp
+    return HTBioFile, videoWriter, photoWriter, startTestTimeStamp
 
 
 # show from which func we got exception and what is the the exception

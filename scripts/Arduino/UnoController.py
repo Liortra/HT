@@ -1,7 +1,9 @@
 from serial import Serial  # you need to install the pySerial :pyserial.sourceforge.net
 import sys
 
+
 sys.path.append('..')
+from Utils.Utils import catch_exception
 # import time
 # from Main import HTBioApp
 
@@ -20,12 +22,12 @@ def on_off_function(command):
         print("Sorry..type another thing..!")
 
 
+@catch_exception
 def init_led():
     global arduino
     # your Serial port should be different!
     arduino = Serial('COM3', 9600)
     # arduino = Serial('COM4', 9600)
-    # time.sleep(3)  # waiting the initialization... (can delete this line)
 
 
 def start_led():
@@ -39,7 +41,7 @@ def stop_led():
 def close_led():
     on_off_function("bye")
 
-# TODO combine button to start_streaming
+# TODO combine button to start_streaming (work with joystick button)
 # def start_button(self, buttonStart, buttonHeat, buttonExit):
 #     while True:
 #         command = arduino.read().decode('utf-8')

@@ -34,6 +34,7 @@ def build_header(HTBioFile, versionId, patientId, testId, dateX, frameWidth, fra
     #     thread.daemon = True  # Daemonize thread
     #     thread.start()  # Start the execution
 
+# TODO find a way to Shorten the writing time
 def run(HTBioFile, listTemp, versionId, patientId, testId,
         dateX, frameWidth, frameHeight, decayPoint, heatingPoint):
     build_header(HTBioFile, versionId, patientId, testId,
