@@ -1,19 +1,39 @@
-HTBioApp
+# HTBioApp
 
-Workflow of the system:
-1) Window with start , heat and exit
+Hello everyone,
 
-I'm working with: (in future, write the steps to activate the system)
-* python 3.7.4
-* https://stackoverflow.com/questions/38002630/how-to-get-syntax-highlighting-on-kivy-kv-file-in-pycharm-on-osx - before work with kv file
-* https://kivy.org/doc/stable/installation/installation-windows.html#install-win-dist - before work with Kivy
-* https://lepton.flir.com/getting-started/quick-start-guide-getting-started-programing-with-python-sdk/ - install visual studio
-* list of all pip install - pip install pythonnet jupyterlab numpy matplotlib
-* pip install pySerial - for arduino & and change COM
-* pip install opencv-python - for openCV (cv2)
-* unblock folder + files
+Here is a guide to operating the system for the first time
 
-** check PYTHONPATH or sys.path.append("..")
+## Pre installation
 
-** what left:
-1. Adding button to start the test
+** Follow the steps listed here
+
+Download and install python 3.7.4
+
+Run PreRequisite.py from HT\scripts\Utils\ in cmd
+```bash
+python PreRequisite.py
+```
+
+Install  VC from HT\scripts\Utils\Redistributables  VC_redist.x{64/86(32)} 
+* check before install 32bit or 64bit
+
+Unblock the DLL files from x64/x86
+```bash
+dir -Recurse | Unblock-File
+```
+or
+```bash
+get-childitem "full path of folder" -recurse | unblock-file -confirm
+```
+* from powerShell or cmd
+
+##Appendices
+
+What Left:
+
+1. Make script from Readme
+2. Fix video & fps
+3. Handle disconnect CV2 & Lepton
+4. Close Led in crash of the app
+5. Adding button from the arduino
