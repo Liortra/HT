@@ -31,6 +31,7 @@ Builder.load_file('htbio.kv')
 
 
 class ICTCamera(Image):
+    @catch_exception
     def __init__(self, parent, capture, **kwargs):
         super(ICTCamera, self).__init__(**kwargs)
         self.capture = capture  # data to read
@@ -96,6 +97,7 @@ class CameraScreen(Screen):
         self.init_camera()
 
     # init and close the system
+    @catch_exception
     def init_camera(self):
         from API import LeptonAPI
         from Arduino import UnoController
@@ -110,7 +112,12 @@ class CameraScreen(Screen):
             UnoController.init_led()  # start the Arduino
             # Set as started
             self.isTurnOn = True
-            # self.button_thread(True)  # get back here line 113-118
+            # # sending the ids of the buttons to start_streaming from LedController
+            # self.thread2 = threading.Thread(target=UnoController.start_button, args=(self, self.ids['buttonStart'],
+            #                                                                          self.ids['buttonHeat'],
+            #                                                                          self.ids['buttonExit']))
+            # self.thread2.daemon = True  # Daemonize thread
+            # self.thread2.start()
         else:  # press on TurnOff = teardown for the system
             UnoController.stop_led()  # Turn Off the led
             self.ICTCamera.stop()  # Stop the camera
@@ -120,16 +127,8 @@ class CameraScreen(Screen):
             self.isTurnOn = False  # stop what was "started"
             self.isHeated = False
 
-    # def button_thread(self,boolean):
-    #     from Arduino import UnoController
-    #     # sending the ids of the buttons to start_streaming from LedController
-    #     self.thread2 = threading.Thread(target=UnoController.start_button, args=(self, self.ids['buttonStart'],
-    #                                                                              self.ids['buttonHeat'],
-    #                                                                              self.ids['buttonExit'],boolean))
-    #     self.thread2.daemon = True  # Daemonize thread
-    #     self.thread2.start()
-
     # Start recording or stop recording
+    @catch_exception
     def start_streaming(self, buttonStart, buttonHeat, buttonExit):
         from Arduino import UnoController
         if not self.isRecording:  # Was running at click
@@ -143,7 +142,6 @@ class CameraScreen(Screen):
             self.ICTCamera.start_stop_record_video()  # start film a video
             CameraScreen.run_test(self, self.fileWriter, self.photoWriter, self.startTestTimeStamp,
                                   buttonStart, buttonHeat, buttonExit)
-            # self.button_thread(False)
         else:
             UnoController.stop_led()  # Turn Off the led
             self.ICTCamera.start_stop_record_video()
@@ -153,7 +151,6 @@ class CameraScreen(Screen):
             buttonHeat.disabled = False  # Enable the Heat (button)
             buttonStart.text = 'Start'
             print("Test end")
-            # self.button_thread(True)
 
     def run_test(self, fileWriter, photoWriter, startTestTimeStamp, buttonStart, buttonHeat, buttonExit):
         from API import LeptonAPI

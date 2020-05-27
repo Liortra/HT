@@ -1,9 +1,3 @@
-# D:\PycharmProjects\HT\scripts;D:\PycharmProjects\HT\scripts\API;
-# D:\PycharmProjects\HT\scripts\Arduino;
-# D:\PycharmProjects\HT\scripts\Main;
-# D:\PycharmProjects\HT\scripts\x64;
-# D:\PycharmProjects\HT\scripts\x86;
-
 import cv2  # https://docs.opencv.org/master/d6/d00/tutorial_py_root.html
 from datetime import datetime
 import os.path
@@ -59,6 +53,7 @@ def build_files(capture):
     return HTBioFile, videoWriter, photoName, startTestTimeStamp
 
 
+# show from which func we got exception and what is the the exception
 def catch_exception(f):
     @functools.wraps(f)
     def func(*args, **kwargs):
@@ -66,5 +61,6 @@ def catch_exception(f):
             return f(*args, **kwargs)
         except Exception as e:
             print('Caught an exception in', f.__name__)
+            print(e)
 
     return func

@@ -1,5 +1,5 @@
 #define LED 2
-#define BUTTON 3
+#define BUTTON 4
 
 // Using http://slides.justen.eng.br/python-e-arduino as refference
 // https://stackoverflow.com/questions/54662362/sending-signal-from-arduino-serial-to-a-python-program
@@ -21,9 +21,6 @@ void loop() {
             digitalWrite(LED, LOW);
         }
     }
-    buttonState = digitalRead(BUTTON);
-    if (buttonState == HIGH) {
-      Serial.println('1');
-      delay(100);
-    }
+    Serial.print(digitalRead(BUTTON));
+    delay(500);
 }
