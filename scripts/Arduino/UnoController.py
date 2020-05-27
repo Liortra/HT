@@ -1,5 +1,6 @@
 from serial import Serial  # you need to install the pySerial :pyserial.sourceforge.net
 import sys
+
 sys.path.append('..')
 # import time
 # from Main import HTBioApp
@@ -39,15 +40,12 @@ def close_led():
     on_off_function("bye")
 
 # TODO combine button to start_streaming
-# def start_button(self, buttonStart, buttonHeat, buttonExit, boolean):
-#     while boolean:
+# def start_button(self, buttonStart, buttonHeat, buttonExit):
+#     while True:
 #         command = arduino.read().decode('utf-8')
 #         if command:
 #             # flush serial for unprocessed data
 #             arduino.flushInput()
-#             if str(command) == '1':
+#             if str(command) == '0':
 #                 print("Playing test")
-#                 boolean = False
 #                 HTBioApp.CameraScreen.start_streaming(self, buttonStart, buttonHeat, buttonExit)
-
-
